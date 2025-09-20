@@ -37,6 +37,16 @@
     "@aws-cdk/customresources:installLatestAwsSdkDefault": false,
     "@aws-cdk/core:permissionsBoundary": {
       "name": "ADSK-Boundary"
+    },
+    "tags": {
+      "adsk:service": "AWS-DEV-SEARCH-V2",
+      "adsk:environment": "Dev",
+      "Owner": "ambarish.rao@autodesk.com",
+      "adsk:family": "searchdevd2",
+      "adsk:role": "Elasticsearch",
+      "adsk:moniker": "SRCH-C-UW2",
+      "adsk:product": "search",
+      "Name": "dev-d2-migration-assistant"
     }
   }
 }
