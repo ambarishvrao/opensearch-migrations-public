@@ -53,7 +53,8 @@ SNAPSHOT_SCHEMA = {
                     'repo_uri': {'type': 'string', 'required': True},
                     'aws_region': {'type': 'string', 'required': True},
                     'role': {'type': 'string', 'required': False},
-                    'endpoint': {'type': 'string', 'required': False}
+                    'endpoint': {'type': 'string', 'required': False},
+                    'index_allowlist': {'type': 'list', 'required': False}
                 }
             },
             'fs': {
@@ -174,6 +175,7 @@ class S3Snapshot(Snapshot):
         self.s3_role_arn = config['s3'].get('role')
         self.s3_region = config['s3']['aws_region']
         self.s3_endpoint = config['s3'].get('endpoint')
+        self.index_allowlist = config['s3'].get('index_allowlist')
 
     def create(self, *args, **kwargs) -> str:
         if not self.source_cluster:
@@ -200,10 +202,20 @@ class S3Snapshot(Snapshot):
             command_args["--max-snapshot-rate-mb-per-node"] = max_snapshot_rate_mb_per_node
         if self.s3_role_arn:
             command_args["--s3-role-arn"] = self.s3_role_arn
+        if self.index_allowlist:
+            command_args["--index-allowlist"] = ",".join(self.index_allowlist)
         if extra_args:
-            for arg in extra_args:
-                command_args[arg] = FlagOnlyArgument
-
+            i = 0
+            while i < len(extra_args):
+                arg = extra_args[i]
+                if arg.startswith('--') and i + 1 < len(extra_args) and not extra_args[i + 1].startswith('--'):
+                    # Argument with value
+                    command_args[arg] = extra_args[i + 1]
+                    i += 2
+                else:
+                    # Flag-only argument
+                    command_args[arg] = FlagOnlyArgument
+                    i += 1
         command_runner = CommandRunner(base_command, command_args, sensitive_fields=["--source-password"])
         try:
             command_runner.run()
